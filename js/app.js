@@ -1,35 +1,54 @@
 (function() {
 	'use strict';
 
-	angular.module('LunchCheck', [])
-	.filter('itemCount', function() {
-		return function(input, isEmpty) {
-			input = input || [];
-			var count = 0;
-			for(var i=0;i<input.length;i++) {
-				if(input[i].trim() != ""){
-					count++;
-				}
-			}
-			return count;
-		}
-	})
-	.controller('LunchCheckController', ['$scope', 'itemCountFilter', LunchCheckController]);
+	angular.module('ShoppingListCheckOff', [])
+	.controller('ToBuyController', ToBuyController)
+	.controller('AlreadyBoughtController', AlreadyBoughtController)
+	.service('ShoppingListCheckOffService', ShoppingListCheckOffService);
 
-	function LunchCheckController($scope, itemCountFilter) {
-		$scope.items = "";
+	ToBuyController.$inject = ['ShoppingListCheckOffService'];
+	AlreadyBoughtController.$inject = ['ShoppingListCheckOffService'];
 
-		$scope.checkItems = function() {
-			
-			var itemsArray = $scope.items.split(',');
-			var filteredItems = itemCountFilter(itemsArray);
-			if(filteredItems == 0) {
-				$scope.message = "Please enter data first";
-			} else if(filteredItems <= 3){
-				$scope.message = "Enjoy!";
-			} else {
-				$scope.message = "Too much!";
-			}
+
+	function ToBuyController(ShoppingListCheckOffService) {
+		var ctrl = this;
+		ctrl.toBuyItems = ShoppingListCheckOffService.getToBuyItems();
+		ctrl.isEmpty = function(){
+			return ctrl.toBuyItems.length == 0;
 		}
+
+		ctrl.moveItem = function(index) {
+			ShoppingListCheckOffService.moveItem(index);
+		}
+
+	}
+
+	function AlreadyBoughtController(ShoppingListCheckOffService) {
+		var ctrl = this;
+		ctrl.boughtItems = ShoppingListCheckOffService.getBoughtItems();
+		ctrl.isEmpty = function(){
+			return ctrl.boughtItems.length == 0;
+		}
+	}
+
+	function ShoppingListCheckOffService() {
+		var service = this;
+
+		var toBuyItems = ["Buy 1 cookie", "Buy 2 cookies", "Buy 3 cookies", "Buy 4 cookies", "Buy 5 cookies"];
+		var boughtItems = [];
+
+		service.moveItem = function(itemIndex){
+			boughtItems.push(toBuyItems[itemIndex]);
+			toBuyItems.splice(itemIndex, 1);
+		}
+
+		service.getToBuyItems = function(){
+			return toBuyItems;
+		}
+
+		service.getBoughtItems = function(){
+			return boughtItems;
+		}
+
 	}
 })();
